@@ -1,36 +1,107 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
-const vscode = require('vscode');
+const { window, StatusBarAlignment, workspace } = require('vscode')
+const babel = require('@babel/core');
+const { minify } = require("terser");
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
-
-/**
- * @param {vscode.ExtensionContext} context
- */
 function activate(context) {
+	const status = window.createStatusBarItem(StatusBarAlignment.Right, 999)
+	context.subscriptions.push(status)
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "rushB" is now active!');
-
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with  registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('rushB.helloWorld', function () {
-		// The code you place here will be executed every time your command is executed
-
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from rushB!');
-	});
-
-	context.subscriptions.push(disposable);
+	context.subscriptions.push(window.onDidChangeActiveTextEditor(editor => calculateCurrentCompressedFileSize(editor, status)))
+	context.subscriptions.push(workspace.onDidOpenTextDocument(document => calculateCurrentCompressedFileSize({ document }, status)))
+	context.subscriptions.push(workspace.onDidSaveTextDocument(document => calculateCurrentCompressedFileSize({ document }, status)))
 }
 
-// this method is called when your extension is deactivated
-function deactivate() {}
+function calculateCurrentCompressedFileSize(editor, status) {
+	if(editor.document.uri.scheme !== 'file' || !/\.js$/.test(editor.document.uri._fsPath)) {
+		status.hide();
+		return
+	}
+
+	const code = editor.document.getText()
+
+	compressFile(code, status)
+}
+
+function compressFile(code, status) {
+	const optionsObject = {
+		presets: [
+			// wxPreset,
+			[
+				'@babel/preset-env',
+				{
+					targets: {
+						browsers: ['safari >= 10', 'android >= 5.0'],
+					},
+					modules: 'commonjs',
+					loose: true,
+				},
+			],
+		],
+		comments: false,
+		plugins: [
+			'macros',
+			[
+				'@babel/plugin-proposal-decorators',
+				{
+					legacy: true,
+				},
+			],
+			'@babel/plugin-syntax-dynamic-import',
+			'@babel/plugin-syntax-import-meta',
+			'@babel/plugin-proposal-class-properties',
+			'@babel/plugin-proposal-json-strings',
+			'@babel/plugin-proposal-function-sent',
+			'@babel/plugin-proposal-export-namespace-from',
+			'@babel/plugin-proposal-numeric-separator',
+			'@babel/plugin-proposal-throw-expressions',
+			'@babel/plugin-proposal-export-default-from',
+			'@babel/plugin-proposal-logical-assignment-operators',
+			'@babel/plugin-proposal-optional-chaining',
+			[
+				'@babel/plugin-proposal-pipeline-operator',
+				{
+					proposal: 'minimal',
+				},
+			],
+			'@babel/plugin-proposal-nullish-coalescing-operator',
+			'@babel/plugin-proposal-do-expressions',
+			'@babel/plugin-proposal-function-bind',
+			[
+				'@babel/plugin-transform-runtime',
+				{
+					corejs: false,
+					helpers: true,
+					regenerator: true,
+					useESModules: false,
+				},
+			],
+			[
+				'transform-define',
+				{
+					'process.env.NODE_ENV': 'production',
+					// 'process.env.PERFORMANCE_DEBUG': process.env.PERFORMANCE_DEBUG
+				},
+			],
+		],
+	};
+
+	const transformedCode = babel.transformSync(code, optionsObject);
+
+	minify(transformedCode.code, {
+		module: true,
+		compress: {},
+		mangle: {},
+		output: {},
+		parse: {},
+	}).then(res => {
+
+		status.tooltip = '压缩后文件大小单位（B）'
+		status.text = '压缩后文件大小：' + res.code.length
+		status.color = '#FFFFFF'
+		status.show();
+	})
+}
 
 module.exports = {
-	activate,
-	deactivate
+	activate
 }
