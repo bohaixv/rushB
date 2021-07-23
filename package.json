@@ -6,6 +6,8 @@
 	"engines": {
 		"vscode": "^1.52.0"
 	},
+	"publisher": "bohaixu",
+	"icon": "https://p1.meituan.net/travelcube/8b2649638fc0db931cfa41dc0127f0d88332.jpg",
 	"categories": [
 		"Other"
 	],
