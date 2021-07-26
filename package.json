@@ -13,11 +13,11 @@
 	],
 	"repository": "https://github.com/bohaixv/rushB.git",
 	"activationEvents": [
-		"onLanguage:javascript"
+		"onLanguage:javascript",
+		"onLanguage:typescript"
 	],
 	"main": "./extension.js",
-	"contributes": {
-	},
+	"contributes": {},
 	"scripts": {
 		"lint": "eslint .",
 		"pretest": "npm run lint",
