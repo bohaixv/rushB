@@ -2,7 +2,7 @@
 	"name": "rushB",
 	"displayName": "rushB",
 	"description": "tips for optimizing file size ",
-	"version": "0.0.3",
+	"version": "0.0.4",
 	"engines": {
 		"vscode": "^1.52.0"
 	},
