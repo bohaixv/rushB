@@ -20,18 +20,17 @@ function calculateCurrentCompressedFileSize(editor, status) {
 	}
 
 	const code = editor.document.getText()
-	const fileNmae = path.basename(editor.document.uri._fsPath)
+	const fileName = path.basename(editor.document.uri._fsPath)
 
-	compressFile(code, status, fileNmae)
+	compressFile(code, status, fileName)
 }
 
-function compressFile(code, status, fileNmae) {
+function compressFile(code, status, fileName) {
 	const optionsObject = {
-		filename: fileNmae,
+		filename: fileName,
 		presets: [
-			// wxPreset,
 			[
-				'@babel/preset-env',
+				require('@babel/preset-env'),
 				{
 					targets: {
 						browsers: ['safari >= 10', 'android >= 5.0'],
@@ -40,39 +39,39 @@ function compressFile(code, status, fileNmae) {
 					loose: true,
 				},
 			],
-			['@babel/preset-typescript']
+			[require('@babel/preset-typescript')]
 		],
 		comments: false,
 		plugins: [
-			'macros',
+			require('babel-plugin-macros'),
 			[
-				'@babel/plugin-proposal-decorators',
+				require('@babel/plugin-proposal-decorators'),
 				{
 					legacy: true,
 				},
 			],
-			'@babel/plugin-syntax-dynamic-import',
-			'@babel/plugin-syntax-import-meta',
-			'@babel/plugin-proposal-class-properties',
-			'@babel/plugin-proposal-json-strings',
-			'@babel/plugin-proposal-function-sent',
-			'@babel/plugin-proposal-export-namespace-from',
-			'@babel/plugin-proposal-numeric-separator',
-			'@babel/plugin-proposal-throw-expressions',
-			'@babel/plugin-proposal-export-default-from',
-			'@babel/plugin-proposal-logical-assignment-operators',
-			'@babel/plugin-proposal-optional-chaining',
+			require('@babel/plugin-syntax-dynamic-import'),
+			require('@babel/plugin-syntax-import-meta'),
+			require('@babel/plugin-proposal-class-properties'),
+			require('@babel/plugin-proposal-json-strings'),
+			require('@babel/plugin-proposal-function-sent'),
+			require('@babel/plugin-proposal-export-namespace-from'),
+			require('@babel/plugin-proposal-numeric-separator'),
+			require('@babel/plugin-proposal-throw-expressions'),
+			require('@babel/plugin-proposal-export-default-from'),
+			require('@babel/plugin-proposal-logical-assignment-operators'),
+			require('@babel/plugin-proposal-optional-chaining'),
 			[
-				'@babel/plugin-proposal-pipeline-operator',
+				require('@babel/plugin-proposal-pipeline-operator'),
 				{
 					proposal: 'minimal',
 				},
 			],
-			'@babel/plugin-proposal-nullish-coalescing-operator',
-			'@babel/plugin-proposal-do-expressions',
-			'@babel/plugin-proposal-function-bind',
+			require('@babel/plugin-proposal-nullish-coalescing-operator'),
+			require('@babel/plugin-proposal-do-expressions'),
+			require('@babel/plugin-proposal-function-bind'),
 			[
-				'@babel/plugin-transform-runtime',
+				require('@babel/plugin-transform-runtime'),
 				{
 					corejs: false,
 					helpers: true,
@@ -81,7 +80,7 @@ function compressFile(code, status, fileNmae) {
 				},
 			],
 			[
-				'transform-define',
+				require('babel-plugin-transform-define'),
 				{
 					'process.env.NODE_ENV': 'production',
 					// 'process.env.PERFORMANCE_DEBUG': process.env.PERFORMANCE_DEBUG
@@ -90,21 +89,24 @@ function compressFile(code, status, fileNmae) {
 		],
 	};
 
-	const transformedCode = babel.transformSync(code, optionsObject);
+	try{
+		const transformedCode = babel.transformSync(code, optionsObject);
 
-	minify(transformedCode.code, {
-		module: true,
-		compress: {},
-		mangle: {},
-		output: {},
-		parse: {},
-	}).then(res => {
-
-		status.tooltip = '压缩后文件大小单位（B）'
-		status.text = '压缩后文件大小：' + sizeOf(res.code)
-		status.color = '#FFFFFF'
-		status.show();
-	})
+		minify(transformedCode.code, {
+			module: true,
+			compress: {},
+			mangle: {},
+			output: {},
+			parse: {},
+		}).then(res => {
+			status.tooltip = '压缩后文件大小单位（B）'
+			status.text = '压缩后文件大小：' + sizeOf(res.code)
+			status.color = '#FFFFFF'
+			status.show();
+		})
+	} catch(err) {
+		console.log(err)
+	}
 }
 
 /**
@@ -156,7 +158,6 @@ function sizeOf(str, charset = 'utf-8') {
     }
     return total;
 }
-
 
 module.exports = {
 	activate
