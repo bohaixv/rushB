@@ -18,7 +18,7 @@ const config = {
   },
   resolve: {
     // 支持读取TypeScript和JavaScript文件, 📖 -> https://github.com/TypeStrong/ts-loader
-    extensions: [".ts", ".js"]
+    extensions: [".ts", ".js", '.json']
   },
   module: {
     rules: [
